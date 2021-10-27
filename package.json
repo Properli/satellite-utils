@@ -2,14 +2,16 @@
   "name": "@properli/creators-lib",
   "version": "0.0.0",
   "description": "Library to encode properli watermarks into blob files",
-  "main": "dist/index.js",
+  "main": "lib/creatorsLib.js",
+  "module": "src/index.js",
   "private": true,
   "scripts": {
-    "test": "mocha",
-    "build": "babel src -d dist"
+    "test": "NODE_ENV=test mocha -r ts-node/register test/**/*.spec.ts",
+    "build": "webpack --mode=development",
+    "prepublish": "webpack --mode=production"
   },
   "directories": {
-    "dist": "./dist"
+    "lib": "./lib"
   },
   "repository": {
     "type": "git",
@@ -31,16 +33,23 @@
     "@babel/cli": "^7.15.7",
     "@babel/core": "^7.15.8",
     "@babel/preset-env": "^7.15.8",
+    "@babel/preset-typescript": "^7.15.0",
     "@babel/register": "^7.15.3",
+    "@types/chai": "^4.2.22",
+    "@types/mocha": "^9.0.0",
     "babel-loader": "^8.2.3",
     "chai": "^4.3.4",
-    "mocha": "^9.1.3",
+    "mocha": "^8.4.0",
+    "ts-loader": "^9.2.6",
+    "ts-node": "^10.4.0",
+    "typescript": "^4.4.4",
     "webpack": "^5.60.0",
     "webpack-cli": "^4.9.1"
   },
   "dependencies": {
     "core-js": "^3.19.0",
     "lodash": "^4.17.21",
-    "regenerator-runtime": "^0.13.9"
+    "regenerator-runtime": "^0.13.9",
+    "siphash": "^1.1.0"
   }
 }

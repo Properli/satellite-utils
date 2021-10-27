@@ -1,6 +1,8 @@
 # project
 dist
 package-lock.json
+lib/**/*
+!lib/.gitkeep
 
 # node
 node_modules
@@ -144,7 +146,6 @@ DerivedData/
 *.sig
 
 pkg/
-src/
 
 ### Windows template
 # Windows thumbnail cache files
