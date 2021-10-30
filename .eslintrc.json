@@ -1,0 +1,19 @@
+{
+    "extends": [
+        "airbnb-base",
+        "airbnb-typescript/base"
+    ],
+    "parserOptions": {
+        "project": "./tsconfig.eslint.json"
+    },
+    "rules": {
+        "no-console": [
+            "error", {
+                "allow": [
+                    "warn",
+                    "error"
+                ]
+            }
+        ]
+    }
+}
