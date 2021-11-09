@@ -19,4 +19,7 @@ module.exports = {
     path: path.resolve(__dirname, 'lib'),
     globalObject: 'this'
   },
+  externals: {
+    'argon2':'commonjs argon2',
+  }
 };
