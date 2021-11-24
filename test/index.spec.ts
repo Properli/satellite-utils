@@ -2,15 +2,18 @@
 /* eslint-disable prefer-arrow-callback */
 import chai from 'chai';
 import { randomBytes } from 'crypto';
-import { calculateSalt, calculateWatermark } from '../src/index';
+import * as fs from 'fs';
+import { testables } from '../src/makeHashes';
 import 'mocha';
+
+const { calculateCreatorIdAndLicenseHash, calculateWatermark } = testables;
 
 describe('calculate salt', () => {
   it('should calculate the same salt for the same inputs twice', async () => {
     const creatorIdBuffer = Buffer.from(randomBytes(128));
     const licenseBuffer = Buffer.from('GPL 3.0');
-    chai.expect((await calculateSalt(creatorIdBuffer, licenseBuffer)).toString('hex'))
-      .to.be.equal((await calculateSalt(creatorIdBuffer, licenseBuffer)).toString('hex'));
+    chai.expect((await calculateCreatorIdAndLicenseHash(creatorIdBuffer, licenseBuffer)).toString('hex'))
+      .to.be.equal((await calculateCreatorIdAndLicenseHash(creatorIdBuffer, licenseBuffer)).toString('hex'));
   });
 });
 
@@ -19,8 +22,9 @@ describe('calculate watermark', function () {
   it('should calculate the same watermark for the same inputs twice', async () => {
     const creatorIdBuffer = Buffer.from(randomBytes(128));
     const licenseBuffer = Buffer.from(randomBytes(256));
-    chai.expect((await calculateWatermark(creatorIdBuffer, licenseBuffer)).toString('hex'))
-      .to.be.equal((await calculateWatermark(creatorIdBuffer, licenseBuffer)).toString('hex'));
+    const first = await calculateWatermark(creatorIdBuffer, licenseBuffer);
+    const second = await calculateWatermark(creatorIdBuffer, licenseBuffer);
+    chai.expect(first.toString('hex')).to.be.equal(second.toString('hex'));
   });
   it('should be able to take two (large) inputs', async () => {
     const saltBuffer = Buffer.from(randomBytes(128));
@@ -37,4 +41,7 @@ describe('calculate watermark', function () {
     const second = await calculateWatermark(blobBuffer, creatorIdBuffer, licenseBuffer);
     chai.expect(first.toString('hex')).to.be.equal(second.toString('hex'));
   });
+});
+
+describe('embed watermark', function () {
 });

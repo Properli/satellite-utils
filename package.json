@@ -32,6 +32,7 @@
   "homepage": "https://github.com/Properli/creators-lib#readme",
   "devDependencies": {
     "@types/chai": "^4.2.22",
+    "@types/lodash": "^4.14.177",
     "@types/mocha": "^9.0.0",
     "@typescript-eslint/eslint-plugin": "^4.33.0",
     "@typescript-eslint/parser": "^4.33.0",

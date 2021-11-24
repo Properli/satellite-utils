@@ -1,4 +1,4 @@
+/* eslint-disable import/prefer-default-export */
 export {
-  calculateSalt,
   calculateWatermark,
-} from './watermarking';
+} from './makeHashes';
