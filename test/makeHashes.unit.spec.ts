@@ -2,11 +2,10 @@
 /* eslint-disable prefer-arrow-callback */
 import chai from 'chai';
 import { randomBytes } from 'crypto';
-import * as fs from 'fs';
 import { testables } from '../src/makeHashes';
 import 'mocha';
 
-const { calculateCreatorIdAndLicenseHash, calculateWatermark } = testables;
+const { calculateHash, calculateCreatorIdAndLicenseHash, calculateWatermark } = testables;
 
 describe('calculate salt', () => {
   it('should calculate the same salt for the same inputs twice', async () => {
@@ -17,15 +16,18 @@ describe('calculate salt', () => {
   });
 });
 
-describe('calculate watermark', function () {
+describe('calculate hash', function () {
   this.timeout(15000);
-  it('should calculate the same watermark for the same inputs twice', async () => {
+  it('should calculate the same hash for the same inputs twice', async () => {
     const creatorIdBuffer = Buffer.from(randomBytes(128));
     const licenseBuffer = Buffer.from(randomBytes(256));
-    const first = await calculateWatermark(creatorIdBuffer, licenseBuffer);
-    const second = await calculateWatermark(creatorIdBuffer, licenseBuffer);
+    const first = await calculateHash(128, creatorIdBuffer, licenseBuffer);
+    const second = await calculateHash(128, creatorIdBuffer, licenseBuffer);
     chai.expect(first.toString('hex')).to.be.equal(second.toString('hex'));
   });
+});
+
+describe('calculate watermark', function () {
   it('should be able to take two (large) inputs', async () => {
     const saltBuffer = Buffer.from(randomBytes(128));
     const blobBuffer = Buffer.from(randomBytes(2 * (10 ** 9))); // 2GB -> can take up to 2**32-1
@@ -41,7 +43,4 @@ describe('calculate watermark', function () {
     const second = await calculateWatermark(blobBuffer, creatorIdBuffer, licenseBuffer);
     chai.expect(first.toString('hex')).to.be.equal(second.toString('hex'));
   });
-});
-
-describe('embed watermark', function () {
 });

@@ -200,7 +200,7 @@ function rotateWatermarkToStartAndPurgeMarker(watermarkArray: string[]): string[
  *
  * @param textFilePath
  */
-export function extractWatermark(textFilePath: string): number {
+export function extractWatermark(textFilePath: string): string {
   const readStream = createReadStream(
     textFilePath, {
       highWaterMark: 1,
@@ -227,5 +227,12 @@ export function extractWatermark(textFilePath: string): number {
     .on('close', () => {
       [watermark] = rotateWatermarkToStartAndPurgeMarker(watermarkArray).flat(Infinity);
     });
-  return parseInt(watermark, 2);
+  return parseInt(watermark, 2).toString(16);
 }
+
+export const testables = {
+  hexToBin,
+  embedWatermark,
+  rotateWatermarkToStartAndPurgeMarker,
+  extractWatermark,
+};
