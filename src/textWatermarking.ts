@@ -33,7 +33,7 @@ const confusableCharacters = [
 
 const reverseConfusableCharacters: string[] = [
   '2010', // -
-  '037e', // ;
+  '37e', // ;
   '216d', // C
   '216e', // D
   '212a', // k
@@ -51,7 +51,7 @@ const reverseConfusableCharacters: string[] = [
 ];
 
 const confusableWhitespaces = [
-  '0020', // space
+  '20', // space
   '2000', // en quad
   '2004', // three-per-em space
   '2005', // four-per-em space
@@ -94,7 +94,7 @@ const confusableWhiteSpaceMapping: { [key: string]: string; } = {
 };
 
 const reverseConfusableWhiteSpaceMapping: { [key: string]: string; } = {
-  '0020': '000', // space
+  '20': '000', // space
   '2000': '001', // en quad
   '2004': '010', // three-per-em space
   '2005': '011', // four-per-em space
@@ -118,14 +118,14 @@ function hexToBin(hex: string): string {
  * @param textFilePath
  * @param watermark
  */
-export function embedWatermark(textFilePath: string, watermark: Buffer) {
+export function embedWatermark(textFilePath: string, watermark: Buffer, outputFilePath?: string) {
   const readStream = createReadStream(
     textFilePath, {
       highWaterMark: 1,
-      encoding: 'hex',
+      encoding: 'utf-8',
     },
   );
-  const watermarkedFilePath = `${textFilePath.split('.')[0]}-watermarked.${textFilePath.split('.')[1]}`;
+  const watermarkedFilePath = outputFilePath || `${textFilePath.split('.')[0]}-watermarked.${textFilePath.split('.')[1]}`;
   const writeStream = createWriteStream(
     watermarkedFilePath, {
       highWaterMark: 1,
@@ -138,9 +138,9 @@ export function embedWatermark(textFilePath: string, watermark: Buffer) {
 
   const exchangeConfusables = new Transform({
     transform(chunk: string, encoding, callback) {
-      modifiedChunk = chunk;
-      if (confusables.includes(chunk)) {
-        if (confusableWhitespaces.includes(chunk)) {
+      modifiedChunk = Buffer.from(chunk).toString('hex');
+      if (confusables.includes(modifiedChunk)) {
+        if (confusableWhitespaces.includes(modifiedChunk)) {
           let whitespaceBits: string = '';
           for (
             let i = watermarkPointer;
@@ -152,12 +152,12 @@ export function embedWatermark(textFilePath: string, watermark: Buffer) {
           modifiedChunk = confusableWhiteSpaceMapping[whitespaceBits];
           watermarkPointer = (watermarkPointer + 3) % watermarkBin.length;
         } else if (watermarkBin[watermarkPointer] === '1') {
-          modifiedChunk = confusableCharacterMapping[chunk];
+          modifiedChunk = confusableCharacterMapping[modifiedChunk];
         } else {
           watermarkPointer = (watermarkPointer + 1) % watermarkBin.length;
         }
       }
-      this.push(modifiedChunk);
+      this.push(Buffer.from(modifiedChunk, 'hex').toString('utf-8'));
       callback();
     },
   });
@@ -204,7 +204,7 @@ export function extractWatermark(textFilePath: string): string {
   const readStream = createReadStream(
     textFilePath, {
       highWaterMark: 1,
-      encoding: 'hex',
+      encoding: 'utf-8',
     },
   );
   const watermarkArray: string[] = [];
@@ -212,12 +212,13 @@ export function extractWatermark(textFilePath: string): string {
 
   readStream
     .on('data', (chunk: string) => {
+      const decodedChunk = Buffer.from(chunk).toString('hex');
       if (watermarkArray.length <= 81) {
-        if (confusableWhitespaces.includes(chunk)) {
-          watermarkArray.push(reverseConfusableWhiteSpaceMapping[chunk]);
-        } else if (confusableCharacters.includes(chunk)) {
+        if (confusableWhitespaces.includes(decodedChunk)) {
+          watermarkArray.push(reverseConfusableWhiteSpaceMapping[decodedChunk]);
+        } else if (confusableCharacters.includes(decodedChunk)) {
           watermarkArray.push('0');
-        } else if (reverseConfusableCharacters.includes(chunk)) {
+        } else if (reverseConfusableCharacters.includes(decodedChunk)) {
           watermarkArray.push('1');
         }
       } else {

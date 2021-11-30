@@ -17,7 +17,6 @@ describe('calculate salt', () => {
 });
 
 describe('calculate hash', function () {
-  this.timeout(15000);
   it('should calculate the same hash for the same inputs twice', async () => {
     const creatorIdBuffer = Buffer.from(randomBytes(128));
     const licenseBuffer = Buffer.from(randomBytes(256));
@@ -28,6 +27,7 @@ describe('calculate hash', function () {
 });
 
 describe('calculate watermark', function () {
+  this.timeout(15000);
   it('should be able to take two (large) inputs', async () => {
     const saltBuffer = Buffer.from(randomBytes(128));
     const blobBuffer = Buffer.from(randomBytes(2 * (10 ** 9))); // 2GB -> can take up to 2**32-1
