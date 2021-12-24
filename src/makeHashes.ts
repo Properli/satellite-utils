@@ -24,15 +24,6 @@ async function calculateHash(hashLength: number, salt: Buffer, input: Buffer): P
   return argon2.hash(input, hashOptions);
 }
 
-export async function calculateLongAddress(longSalt: Buffer, shortAddress: Buffer): Promise<Buffer>;
-
-export async function calculateLongAddress(...args: any[]): Promise<Buffer> {
-  if (args.length === 2) {
-    return calculateHash(256, args[0], args[1]);
-  }
-  return new Promise<Buffer>(() => {});
-}
-
 export async function calculateWatermark(
   blob: Buffer,
   salt: Buffer
@@ -63,6 +54,5 @@ export async function calculateWatermark(...args: any[]): Promise<Buffer> {
 export const testables = {
   calculateCreatorIdAndLicenseHash,
   calculateHash,
-  calculateLongAddress,
   calculateWatermark,
 };

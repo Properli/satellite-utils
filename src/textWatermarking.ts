@@ -13,95 +13,95 @@ import * as _ from 'lodash';
 const watermarkBinSeparator: string[] = _.fill(Array(41), '1');
 
 const confusableCharacters = [
-  '2d', // -
-  '3b', // ;
-  '43', // C
-  '44', // D
-  '4b', // k
-  '4c', // L
-  '4d', // M
-  '56', // V
-  '58', // X
-  '63', // c
-  '64', // d
-  '69', // i
-  '6a', // j
-  '6c', // l
-  '76', // v
-  '78', // x
+  '\u002d', // -
+  '\u003b', // ;
+  '\u0043', // C
+  '\u0044', // D
+  '\u004b', // k
+  '\u004c', // L
+  '\u004d', // M
+  '\u0056', // V
+  '\u0058', // X
+  '\u0063', // c
+  '\u0064', // d
+  '\u0069', // i
+  '\u006a', // j
+  '\u006c', // l
+  '\u0076', // v
+  '\u0078', // x
 ];
 
 const reverseConfusableCharacters: string[] = [
-  '2010', // -
-  '37e', // ;
-  '216d', // C
-  '216e', // D
-  '212a', // k
-  '216c', // L
-  '216f', // M
-  '2164', // V
-  '2169', // X
-  '217d', // c
-  '217e', // d
-  '2170', // i
-  '0458', // j
-  '217c', // l
-  '2174', // v
-  '2179', // x
+  '\u2010', // -
+  '\u037e', // ;
+  '\u216d', // C
+  '\u216e', // D
+  '\u212a', // k
+  '\u216c', // L
+  '\u216f', // M
+  '\u2164', // V
+  '\u2169', // X
+  '\u217d', // c
+  '\u217e', // d
+  '\u2170', // i
+  '\u0458', // j
+  '\u217c', // l
+  '\u2174', // v
+  '\u2179', // x
 ];
 
 const confusableWhitespaces = [
-  '20', // space
-  '2000', // en quad
-  '2004', // three-per-em space
-  '2005', // four-per-em space
-  '2008', // punctuation space
-  '2009', // thin space
-  '202f', // narrow no-brak space
-  '205f', // medium mathematical space
+  '\u0020', // space
+  '\u2000', // en quad
+  '\u2004', // three-per-em space
+  '\u2005', // four-per-em space
+  '\u2008', // punctuation space
+  '\u2009', // thin space
+  '\u202f', // narrow no-brak space
+  '\u205f', // medium mathematical space
 ];
 
 const confusables = confusableCharacters.concat(confusableWhitespaces);
 
 const confusableCharacterMapping: { [key: string]: string; } = {
-  '2d': '2010', // -
-  '3b': '037e', // ;
-  '43': '216d', // C
-  '44': '216e', // D
-  '4b': '212a', // k
-  '4c': '216c', // L
-  '4d': '216f', // M
-  '56': '2164', // V
-  '58': '2169', // X
-  '63': '217d', // c
-  '64': '217e', // d
-  '69': '2170', // i
-  '6a': '0458', // j
-  '6c': '217c', // l
-  '76': '2174', // v
-  '78': '2179', // x
+  '\u002d': '\u2010', // -
+  '\u003b': '\u037e', // ;
+  '\u0043': '\u216d', // C
+  '\u0044': '\u216e', // D
+  '\u004b': '\u212a', // k
+  '\u004c': '\u216c', // L
+  '\u004d': '\u216f', // M
+  '\u0056': '\u2164', // V
+  '\u0058': '\u2169', // X
+  '\u0063': '\u217d', // c
+  '\u0064': '\u217e', // d
+  '\u0069': '\u2170', // i
+  '\u006a': '\u0458', // j
+  '\u006c': '\u217c', // l
+  '\u0076': '\u2174', // v
+  '\u0078': '\u2179', // x
 };
 
 const confusableWhiteSpaceMapping: { [key: string]: string; } = {
-  '000': '0020', // space
-  '001': '2000', // en quad
-  '010': '2004', // three-per-em space
-  '011': '2005', // four-per-em space
-  '100': '2008', // punctuation space
-  '101': '2009', // thin space
-  '110': '202f', // narrow no-brak space
-  '111': '205f', // medium mathematical space
+  '000': '\u0020', // space
+  '001': '\u2000', // en quad
+  '010': '\u2004', // three-per-em space
+  '011': '\u2005', // four-per-em space
+  '100': '\u2008', // punctuation space
+  '101': '\u2009', // thin space
+  '110': '\u202f', // narrow no-brak space
+  '111': '\u205f', // medium mathematical space
 };
 
 const reverseConfusableWhiteSpaceMapping: { [key: string]: string; } = {
-  '20': '000', // space
-  '2000': '001', // en quad
-  '2004': '010', // three-per-em space
-  '2005': '011', // four-per-em space
-  '2008': '100', // punctuation space
-  '2009': '101', // thin space
-  '202f': '110', // narrow no-brak space
-  '205f': '111', // medium mathematical space
+  '\u0020': '000', // space
+  '\u2000': '001', // en quad
+  '\u2004': '010', // three-per-em space
+  '\u2005': '011', // four-per-em space
+  '\u2008': '100', // punctuation space
+  '\u2009': '101', // thin space
+  '\u202f': '110', // narrow no-brak space
+  '\u205f': '111', // medium mathematical space
 };
 
 /**
@@ -118,52 +118,56 @@ function hexToBin(hex: string): string {
  * @param textFilePath
  * @param watermark
  */
-export function embedWatermark(textFilePath: string, watermark: Buffer, outputFilePath?: string) {
+export const embedWatermark = (textFilePath: string, watermark: Buffer, outputFilePath?: string) => new Promise<void>((resolve) => {
   const readStream = createReadStream(
     textFilePath, {
       highWaterMark: 1,
-      encoding: 'utf-8',
+      encoding: 'utf8',
     },
   );
   const watermarkedFilePath = outputFilePath || `${textFilePath.split('.')[0]}-watermarked.${textFilePath.split('.')[1]}`;
   const writeStream = createWriteStream(
     watermarkedFilePath, {
       highWaterMark: 1,
-      encoding: 'utf-8',
+      encoding: 'utf8',
     },
   );
   const watermarkBin = watermarkBinSeparator.concat(hexToBin(watermark.toString('hex')).split(''));
   let watermarkPointer = 0;
   let modifiedChunk;
 
+  // https://dmitripavlutin.com/what-every-javascript-developer-should-know-about-unicode/
+  // http://www.herongyang.com/Unicode/UTF-16-UTF-16LE-Encoding.html
+
   const exchangeConfusables = new Transform({
     transform(chunk: string, encoding, callback) {
-      modifiedChunk = Buffer.from(chunk).toString('hex');
+      modifiedChunk = chunk;
       if (confusables.includes(modifiedChunk)) {
         if (confusableWhitespaces.includes(modifiedChunk)) {
           let whitespaceBits: string = '';
           for (
             let i = watermarkPointer;
-            i < ((watermarkPointer + 3) % watermarkBin.length);
-            (i + 1) % watermarkBin.length
+            i < (watermarkPointer + 3);
+            i += 1
           ) {
-            whitespaceBits = whitespaceBits.concat(watermarkBin[i]);
+            whitespaceBits = whitespaceBits.concat(watermarkBin[i % watermarkBin.length]);
           }
           modifiedChunk = confusableWhiteSpaceMapping[whitespaceBits];
           watermarkPointer = (watermarkPointer + 3) % watermarkBin.length;
         } else if (watermarkBin[watermarkPointer] === '1') {
           modifiedChunk = confusableCharacterMapping[modifiedChunk];
+          watermarkPointer = (watermarkPointer + 1) % watermarkBin.length;
         } else {
           watermarkPointer = (watermarkPointer + 1) % watermarkBin.length;
         }
       }
-      this.push(Buffer.from(modifiedChunk, 'hex').toString('utf-8'));
+      this.push(modifiedChunk);
       callback();
     },
   });
-
   readStream.pipe(exchangeConfusables).pipe(writeStream);
-}
+  writeStream.on('finish', resolve);
+});
 
 function rotateWatermarkToStartAndPurgeMarker(watermarkArray: string[]): string[] {
   let markerStart: number = 0;
@@ -200,7 +204,7 @@ function rotateWatermarkToStartAndPurgeMarker(watermarkArray: string[]): string[
  *
  * @param textFilePath
  */
-export function extractWatermark(textFilePath: string): string {
+export const extractWatermark = (textFilePath: string) => new Promise<string>((resolve, reject) => {
   const readStream = createReadStream(
     textFilePath, {
       highWaterMark: 1,
@@ -210,26 +214,32 @@ export function extractWatermark(textFilePath: string): string {
   const watermarkArray: string[] = [];
   let watermark: string = '';
 
-  readStream
-    .on('data', (chunk: string) => {
-      const decodedChunk = Buffer.from(chunk).toString('hex');
-      if (watermarkArray.length <= 81) {
-        if (confusableWhitespaces.includes(decodedChunk)) {
-          watermarkArray.push(reverseConfusableWhiteSpaceMapping[decodedChunk]);
-        } else if (confusableCharacters.includes(decodedChunk)) {
-          watermarkArray.push('0');
-        } else if (reverseConfusableCharacters.includes(decodedChunk)) {
-          watermarkArray.push('1');
+  readStream.on('open', () => {
+    readStream
+      .on('data', (chunk: string) => {
+        const decodedChunk = Buffer.from(chunk).toString('hex');
+        if (watermarkArray.length <= 81) {
+          if (confusableWhitespaces.includes(decodedChunk)) {
+            watermarkArray.push(reverseConfusableWhiteSpaceMapping[decodedChunk]);
+          } else if (confusableCharacters.includes(decodedChunk)) {
+            watermarkArray.push('0');
+          } else if (reverseConfusableCharacters.includes(decodedChunk)) {
+            watermarkArray.push('1');
+          }
+        } else {
+          readStream.destroy();
         }
-      } else {
-        readStream.destroy();
-      }
-    })
-    .on('close', () => {
-      [watermark] = rotateWatermarkToStartAndPurgeMarker(watermarkArray).flat(Infinity);
-    });
-  return parseInt(watermark, 2).toString(16);
-}
+      })
+      .on('close', () => {
+        [watermark] = rotateWatermarkToStartAndPurgeMarker(watermarkArray).flat(Infinity);
+        throw new Error((parseInt(watermark, 2).toString(16)));
+        resolve(parseInt(watermark, 2).toString(16));
+      })
+      .once('error', (err) => {
+        reject(err);
+      });
+  });
+});
 
 export const testables = {
   hexToBin,

@@ -2,7 +2,6 @@
 export {
   calculateWatermark,
   calculateCreatorIdAndLicenseHash,
-  calculateLongAddress,
 } from './makeHashes';
 export {
   embedWatermark,

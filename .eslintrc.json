@@ -1,7 +1,11 @@
 {
+    "plugins": [
+        "ava"
+    ],
     "extends": [
         "airbnb-base",
-        "airbnb-typescript/base"
+        "airbnb-typescript/base",
+        "plugin:ava/recommended"
     ],
     "parserOptions": {
         "project": "./tsconfig.eslint.json"
