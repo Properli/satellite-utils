@@ -25,7 +25,7 @@ const confusableCharacters = [
   '\u0063', // c
   '\u0064', // d
   '\u0069', // i
-  '\u006a', // j
+  // '\u006a', // j - omitted as normalizing strings does somehow not cover this confusable. It is likely that it is a confusable but not an equivalent by unicode standards and should therefore be treated with caution. TODO: further investigate
   '\u006c', // l
   '\u0076', // v
   '\u0078', // x
@@ -44,7 +44,7 @@ const reverseConfusableCharacters: string[] = [
   '\u217d', // c
   '\u217e', // d
   '\u2170', // i
-  '\u0458', // j
+  // '\u0458', // j
   '\u217c', // l
   '\u2174', // v
   '\u2179', // x
@@ -76,7 +76,7 @@ const confusableCharacterMapping: { [key: string]: string; } = {
   '\u0063': '\u217d', // c
   '\u0064': '\u217e', // d
   '\u0069': '\u2170', // i
-  '\u006a': '\u0458', // j
+  // '\u006a': '\u0458', // j
   '\u006c': '\u217c', // l
   '\u0076': '\u2174', // v
   '\u0078': '\u2179', // x
@@ -140,8 +140,8 @@ export const embedWatermark = (textFilePath: string, watermark: Buffer, outputFi
   // http://www.herongyang.com/Unicode/UTF-16-UTF-16LE-Encoding.html
 
   const exchangeConfusables = new Transform({
-    transform(chunk: string, encoding, callback) {
-      modifiedChunk = chunk;
+    transform(chunk: Buffer, encoding, callback) {
+      modifiedChunk = chunk.toString('utf8');
       if (confusables.includes(modifiedChunk)) {
         if (confusableWhitespaces.includes(modifiedChunk)) {
           let whitespaceBits: string = '';
@@ -170,31 +170,33 @@ export const embedWatermark = (textFilePath: string, watermark: Buffer, outputFi
 });
 
 function rotateWatermarkToStartAndPurgeMarker(watermarkArray: string[]): string[] {
+  // the watermarkArray might be longer than 81 characters -> cut off at the end and join-split
+  const watermarkJoinedArray = watermarkArray.join('').substring(0, 81).split('');
   let markerStart: number = 0;
   let markerEnd: number = markerStart + watermarkBinSeparator.length;
   let markerFound: boolean = false;
   // Locate Marker
   while (!markerFound) {
-    if (watermarkArray.slice(markerStart, markerEnd).every((bit) => bit === '1')) {
+    if (watermarkJoinedArray.slice(markerStart, markerEnd).every((bit) => bit === '1')) {
       markerFound = true;
     } else {
-      markerStart = (markerStart + 1) % watermarkArray.length;
+      markerStart = (markerStart + 1) % watermarkJoinedArray.length;
       if (markerStart === 0) throw new Error('No watermark found');
-      markerEnd = (markerEnd + 1) % watermarkArray.length;
+      markerEnd = (markerEnd + 1) % watermarkJoinedArray.length;
     }
   }
   // re-establish bit-sequence order
   if (markerStart === 0) { // marker is at the beginning of bit sequence, e.g. ----||||
-    return watermarkArray.slice(markerEnd);
+    return watermarkJoinedArray.slice(markerEnd);
   }
   if (markerEnd < markerStart) { // marker wraps around and frames the bit sequence, e.g. --||||--
-    return watermarkArray.slice(markerEnd, markerStart);
+    return watermarkJoinedArray.slice(markerEnd, markerStart);
   }
   if (markerStart !== 0 && markerStart < markerEnd) { // marker is framed by bit sequence, e.g. ||----||
-    return watermarkArray.slice(markerEnd).concat(watermarkArray.slice(0, markerStart));
+    return watermarkJoinedArray.slice(markerEnd).concat(watermarkJoinedArray.slice(0, markerStart));
   }
-  if (markerEnd === watermarkArray.length - 1) { // marker is at the end of bit sequence, e.g. ||||----
-    return watermarkArray.slice(0, markerStart);
+  if (markerEnd === watermarkJoinedArray.length - 1) { // marker is at the end of bit sequence, e.g. ||||----
+    return watermarkJoinedArray.slice(0, markerStart);
   }
   // else I forgot a case...
   throw new Error('Marker has unexpected position. Pls file an issue.');
@@ -217,8 +219,8 @@ export const extractWatermark = (textFilePath: string) => new Promise<string>((r
   readStream.on('open', () => {
     readStream
       .on('data', (chunk: string) => {
-        const decodedChunk = Buffer.from(chunk).toString('hex');
-        if (watermarkArray.length <= 81) {
+        const decodedChunk = chunk;
+        if (watermarkArray.join('').length <= 81) {
           if (confusableWhitespaces.includes(decodedChunk)) {
             watermarkArray.push(reverseConfusableWhiteSpaceMapping[decodedChunk]);
           } else if (confusableCharacters.includes(decodedChunk)) {
@@ -231,8 +233,7 @@ export const extractWatermark = (textFilePath: string) => new Promise<string>((r
         }
       })
       .on('close', () => {
-        [watermark] = rotateWatermarkToStartAndPurgeMarker(watermarkArray).flat(Infinity);
-        throw new Error((parseInt(watermark, 2).toString(16)));
+        watermark = rotateWatermarkToStartAndPurgeMarker(watermarkArray).join('');
         resolve(parseInt(watermark, 2).toString(16));
       })
       .once('error', (err) => {
