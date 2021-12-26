@@ -1,7 +1,7 @@
 {
   "name": "@properli/creators-lib",
   "version": "0.0.0",
-  "description": "Library to encode properli watermarks into blob files",
+  "description": "Library to embed properli watermarks into blob files",
   "main": "lib/creatorsLib.js",
   "module": "src/index.js",
   "private": true,
