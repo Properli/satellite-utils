@@ -1,6 +1,7 @@
 import test from 'ava';
 import mock from 'mock-fs';
 import fs from 'fs';
+import _ from 'lodash';
 import { testables } from '../src/textWatermarking';
 import { calculateWatermark } from '../src/makeHashes';
 
@@ -12,6 +13,66 @@ test('Hexadecimal to binary calculation should take a hexadecimal string and ret
   const hex = 'ff00ff';
   const bin = '111111110000000011111111';
   t.is(hexToBin(hex), bin);
+});
+
+test('rotateWatermarkToStartAndPurgeMarker should not rotate a correct watermark and return it without start marker', (t) => {
+  const watermarkWithMarker: string[] = _.fill(Array(41), '1').concat(_.fill(Array(40), '0'));
+  const watermarkWithoutMarker: string[] = rotateWatermarkToStartAndPurgeMarker(watermarkWithMarker);
+  t.deepEqual(watermarkWithoutMarker, _.fill(Array(40), '0'));
+});
+
+test('rotateWatermarkToStartAndPurgeMarker should error if the marker is too short', (t) => {
+  const watermarkWithMarker: string[] = _.fill(Array(40), '1').concat(_.fill(Array(40), '0'));
+  t.throws(
+    () => rotateWatermarkToStartAndPurgeMarker(watermarkWithMarker),
+    { message: 'Watermark length was 80 but should have been 81.' },
+  );
+});
+
+test('rotateWatermarkToStartAndPurgeMarker should error if the supplied watermark is shorter than 81', (t) => {
+  const watermarkWithMarker: string[] = _.fill(Array(41), '1').concat(_.fill(Array(39), '0'));
+  t.throws(
+    () => rotateWatermarkToStartAndPurgeMarker(watermarkWithMarker),
+    { message: 'Watermark length was 80 but should have been 81.' },
+  );
+});
+
+test('rotateWatermarkToStartAndPurgeMarker should error if the total length is ok but the marker is incorrect', (t) => {
+  const watermarkWithMarker: string[] = _.fill(Array(40), '1').concat(_.fill(Array(41), '0'));
+  t.throws(
+    () => rotateWatermarkToStartAndPurgeMarker(watermarkWithMarker),
+    { message: 'No watermark found' },
+  );
+});
+
+test('rotateWatermarkToStartAndPurgeMarker will take any watermark length with a correct marker no matter the length but will always return 40 bits', (t) => {
+  const watermarkWithMarker: string[] = _.fill(Array(41), '1').concat(_.fill(Array(42069), '0'));
+  const watermarkWithoutMarker: string[] = rotateWatermarkToStartAndPurgeMarker(watermarkWithMarker);
+  t.is(watermarkWithoutMarker.length, 40);
+});
+
+test('rotateWatermarkToStartAndPurgeMarker returns correct watermark with marker at the start', (t) => {
+  const watermarkWithMarker: string[] = _.fill(Array(41), '1').concat(_.fill(Array(40), '0'));
+  const watermarkWithoutMarker: string[] = rotateWatermarkToStartAndPurgeMarker(watermarkWithMarker);
+  t.deepEqual(watermarkWithoutMarker, _.fill(Array(40), '0'));
+});
+
+test('rotateWatermarkToStartAndPurgeMarker returns correct watermark with marker in the middle', (t) => {
+  const watermarkWithMarker: string[] = _.fill(Array(20), '0').concat(_.fill(Array(41), '1')).concat(_.fill(Array(20), '0'));
+  const watermarkWithoutMarker: string[] = rotateWatermarkToStartAndPurgeMarker(watermarkWithMarker);
+  t.deepEqual(watermarkWithoutMarker, _.fill(Array(40), '0'));
+});
+
+test('rotateWatermarkToStartAndPurgeMarker returns correct watermark with marker at the end', (t) => {
+  const watermarkWithMarker: string[] = _.fill(Array(40), '0').concat(_.fill(Array(41), '1'));
+  const watermarkWithoutMarker: string[] = rotateWatermarkToStartAndPurgeMarker(watermarkWithMarker);
+  t.deepEqual(watermarkWithoutMarker, _.fill(Array(40), '0'));
+});
+
+test('rotateWatermarkToStartAndPurgeMarker returns correct watermark with marker broken between start and end', (t) => {
+  const watermarkWithMarker: string[] = _.fill(Array(20), '1').concat(_.fill(Array(40), '0')).concat(_.fill(Array(21), '1'));
+  const watermarkWithoutMarker: string[] = rotateWatermarkToStartAndPurgeMarker(watermarkWithMarker);
+  t.deepEqual(watermarkWithoutMarker, _.fill(Array(40), '0'));
 });
 
 test.serial('Watermark embedding should make text equal to original with normalization', async (t) => {
