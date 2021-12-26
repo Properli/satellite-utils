@@ -170,36 +170,31 @@ export const embedWatermark = (textFilePath: string, watermark: Buffer, outputFi
 });
 
 function rotateWatermarkToStartAndPurgeMarker(watermarkArray: string[]): string[] {
-  // the watermarkArray might be longer than 81 characters -> cut off at the end and join-split
   const watermarkJoinedArray = watermarkArray.join('').substring(0, 81).split('');
+  if (watermarkJoinedArray.length !== 81) throw new Error(`Watermark length was ${watermarkJoinedArray.length} but should have been 81.`);
   let markerStart: number = 0;
   let markerEnd: number = markerStart + watermarkBinSeparator.length;
-  let markerFound: boolean = false;
+  let notFullySearched = true;
   // Locate Marker
-  while (!markerFound) {
-    if (watermarkJoinedArray.slice(markerStart, markerEnd).every((bit) => bit === '1')) {
-      markerFound = true;
-    } else {
-      markerStart = (markerStart + 1) % watermarkJoinedArray.length;
-      if (markerStart === 0) throw new Error('No watermark found');
-      markerEnd = (markerEnd + 1) % watermarkJoinedArray.length;
+  while (notFullySearched) {
+    // re-establish bit-sequence order
+    if (markerStart === 0 && watermarkJoinedArray.slice(markerStart, markerEnd).every((bit) => bit === '1')) { // marker is at the beginning of bit sequence, e.g. ----||||
+      return watermarkJoinedArray.slice(markerEnd);
     }
+    if (markerEnd < markerStart && watermarkJoinedArray.slice(markerStart).every((bit) => bit === '1') && watermarkJoinedArray.slice(0, markerEnd).every((bit) => bit === '1')) { // marker wraps around and frames the bit sequence, e.g. --||||--
+      return watermarkJoinedArray.slice(markerEnd, markerStart);
+    }
+    if (markerStart !== 0 && markerStart < markerEnd && watermarkJoinedArray.slice(markerStart, markerEnd).every((bit) => bit === '1')) { // marker is framed by bit sequence, e.g. ||----||
+      return watermarkJoinedArray.slice(markerEnd).concat(watermarkJoinedArray.slice(0, markerStart));
+    }
+    if (markerEnd === watermarkJoinedArray.length - 1 && watermarkJoinedArray.slice(markerStart, markerEnd).every((bit) => bit === '1')) { // marker is at the end of bit sequence, e.g. ||||----
+      return watermarkJoinedArray.slice(0, markerStart);
+    }
+    markerStart = (markerStart + 1) % watermarkJoinedArray.length;
+    markerEnd = (markerEnd + 1) % watermarkJoinedArray.length;
+    if (markerStart === 0) notFullySearched = false;
   }
-  // re-establish bit-sequence order
-  if (markerStart === 0) { // marker is at the beginning of bit sequence, e.g. ----||||
-    return watermarkJoinedArray.slice(markerEnd);
-  }
-  if (markerEnd < markerStart) { // marker wraps around and frames the bit sequence, e.g. --||||--
-    return watermarkJoinedArray.slice(markerEnd, markerStart);
-  }
-  if (markerStart !== 0 && markerStart < markerEnd) { // marker is framed by bit sequence, e.g. ||----||
-    return watermarkJoinedArray.slice(markerEnd).concat(watermarkJoinedArray.slice(0, markerStart));
-  }
-  if (markerEnd === watermarkJoinedArray.length - 1) { // marker is at the end of bit sequence, e.g. ||||----
-    return watermarkJoinedArray.slice(0, markerStart);
-  }
-  // else I forgot a case...
-  throw new Error('Marker has unexpected position. Pls file an issue.');
+  throw new Error('No watermark found');
 }
 
 /**
